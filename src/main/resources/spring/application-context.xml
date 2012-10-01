@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:amq="http://activemq.apache.org/schema/core"
+	   xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+	<context:component-scan base-package="no.officenet.example"/>
+	<context:property-placeholder location="classpath*:spring/props/*.properties"/>
+	<tx:annotation-driven order="5"/>
+
+	<bean id="momDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		  destroy-method="close">
+		<property name="driverClass" value="${infrastructure.datasource.driver}" />
+		<property name="jdbcUrl" value="${infrastructure.datasource.url}" />
+		<property name="user" value="${infrastructure.datasource.username}" />
+		<property name="password" value="${infrastructure.datasource.password}" />
+
+		<!-- these are C3P0 properties -->
+		<property name="minPoolSize" value="${infrastructure.datasource.minPoolSize}" />
+		<property name="maxPoolSize" value="${infrastructure.datasource.maxPoolSize}" />
+		<property name="maxIdleTime" value="${infrastructure.datasource.maxIdle}" />
+	</bean>
+
+	<jdbc:initialize-database data-source="momDataSource">
+		<jdbc:script location="classpath:tables.sql"/>
+	</jdbc:initialize-database>
+
+	<bean id="transactionManager"
+		  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource">
+			<ref local="momDataSource"/>
+		</property>
+	</bean>
+
+	<amq:queue id="destination"  physicalName="pungrotte"/>
+
+	<amq:broker useJmx="false" persistent="false">
+		<amq:persistenceAdapter>
+			<amq:jdbcPersistenceAdapter dataSource="#momDataSource" createTablesOnStartup="false">
+				<amq:databaseLocker>
+					<amq:transact-database-locker queryTimeout="0"/>
+				</amq:databaseLocker>
+			</amq:jdbcPersistenceAdapter>
+		</amq:persistenceAdapter>
+		<amq:transportConnectors>
+			<amq:transportConnector uri="tcp://localhost:0" />
+		</amq:transportConnectors>
+	</amq:broker>
+
+	<amq:connectionFactory brokerURL="vm://localhost/" id="connectionFactory"/>
+
+	<bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+		<property name="connectionFactory" ref="connectionFactory"/>
+	</bean>
+
+	<bean id="producerJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="jmsFactory"/>
+		<property name="sessionTransacted" value="true"/>
+	</bean>
+
+	<bean id="myEventConsumer" class="no.officenet.example.mom.MyEventConsumerImpl"/>
+
+	<bean id="jmsContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+		<property name="connectionFactory" ref="jmsFactory"/>
+		<property name="destination" ref="destination"/>
+		<property name="messageListener" ref="myEventConsumer" />
+		<property name="sessionTransacted" value="true"/>
+	</bean>
+
+</beans>
