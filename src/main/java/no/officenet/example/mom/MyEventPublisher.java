@@ -33,6 +33,12 @@ public class MyEventPublisher implements EventPublisher {
 				return session.createObjectMessage(event);
 			}
 		});
-		myService.createProducerStuff("After jms.send");
+		myService.createProducerStuff("After jms.send, sleeping 5s");
+		try {
+			Thread.sleep(5 * 1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		myService.createProducerStuff("After jms.send, waking up...");
 	}
 }

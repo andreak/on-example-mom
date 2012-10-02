@@ -17,7 +17,13 @@ public class MyEventConsumerImpl implements MyEventConsumer, MessageListener {
 			ObjectMessage objectMessage = (ObjectMessage) message;
 			try {
 				System.out.println("Processing " + objectMessage.getObject());
-				myService.createConsumerStuff("Creating consumer stuff");
+				myService.createConsumerStuff("Creating consumer stuff, sleeping 5s");
+				try {
+					Thread.sleep(5 * 1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				myService.createConsumerStuff("Creating consumer stuff, waking up");
 			} catch (JMSException e) {
 				e.printStackTrace();
 			}
