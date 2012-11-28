@@ -53,7 +53,7 @@
 
 	<amq:connectionFactory brokerURL="vm://localhost/" id="connectionFactory">
 		<amq:redeliveryPolicy>
-			<amq:redeliveryPolicy queue="destination" maximumRedeliveries="0"/>
+			<amq:redeliveryPolicy maximumRedeliveries="0"/>
 		</amq:redeliveryPolicy>
 	</amq:connectionFactory>
 

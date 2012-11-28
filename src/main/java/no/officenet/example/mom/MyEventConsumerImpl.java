@@ -33,6 +33,5 @@ public class MyEventConsumerImpl implements MyEventConsumer, MessageListener {
 		} else {
 			System.out.println("Not ObjectMessage");
 		}
-		throw new RuntimeException("BOOOOOM");
 	}
 }
