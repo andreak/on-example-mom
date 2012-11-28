@@ -38,7 +38,7 @@
 
 	<amq:queue id="destination"  physicalName="pungrotte"/>
 
-	<amq:broker useJmx="false" persistent="false">
+	<amq:broker useJmx="false" persistent="true">
 		<amq:persistenceAdapter>
 			<amq:jdbcPersistenceAdapter dataSource="#momDataSource" createTablesOnStartup="false">
 				<amq:databaseLocker>
@@ -51,9 +51,13 @@
 		</amq:transportConnectors>
 	</amq:broker>
 
-	<amq:connectionFactory brokerURL="vm://localhost/" id="connectionFactory"/>
+	<amq:connectionFactory brokerURL="vm://localhost/" id="connectionFactory">
+		<amq:redeliveryPolicy>
+			<amq:redeliveryPolicy queue="destination" maximumRedeliveries="0"/>
+		</amq:redeliveryPolicy>
+	</amq:connectionFactory>
 
-	<bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+	<bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" init-method="start" destroy-method="stop">
 		<property name="connectionFactory" ref="connectionFactory"/>
 	</bean>
 

@@ -14,6 +14,7 @@ CREATE TABLE activemq_acks (
     selector character varying(250),
     last_acked_id bigint,
     priority bigint DEFAULT 5 NOT NULL,
+    xid bytea,
     PRIMARY KEY (container, client_id, sub_name, priority)
 );
 
@@ -30,7 +31,8 @@ CREATE TABLE activemq_msgs (
     msgid_seq bigint,
     expiration bigint,
     msg bytea,
-    priority bigint
+    priority bigint,
+    xid bytea
 );
 
 CREATE INDEX activemq_msgs_cidx ON activemq_msgs USING btree (container);

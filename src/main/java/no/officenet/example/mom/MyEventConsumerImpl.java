@@ -1,5 +1,7 @@
 package no.officenet.example.mom;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.annotation.Resource;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -12,6 +14,7 @@ public class MyEventConsumerImpl implements MyEventConsumer, MessageListener {
 	MyService myService;
 
 	@Override
+	@Transactional
 	public void onMessage(Message message) {
 		if (message instanceof ObjectMessage) {
 			ObjectMessage objectMessage = (ObjectMessage) message;
@@ -30,5 +33,6 @@ public class MyEventConsumerImpl implements MyEventConsumer, MessageListener {
 		} else {
 			System.out.println("Not ObjectMessage");
 		}
+		throw new RuntimeException("BOOOOOM");
 	}
 }
